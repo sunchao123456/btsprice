@@ -92,8 +92,8 @@ class Exchanges():
                 order_book_bid.append([1/_o['p'], _o['b_b']])
             return {
                 "bids": order_book_bid, "asks": order_book_ask}
-        except:
-            print("Error fetching book from btsbots!")
+        except Exception as e::
+            print 'e.message:\t', e.message
 
     @asyncio.coroutine
     def orderbook_poloniex(self, quote="btc", base="bts"):
