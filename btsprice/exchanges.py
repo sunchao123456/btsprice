@@ -93,7 +93,7 @@ class Exchanges():
             return {
                 "bids": order_book_bid, "asks": order_book_ask}
         except Exception as e::
-            print 'e.message:\t', e.message
+            print 'traceback.print_exc():'; traceback.print_exc()
 
     @asyncio.coroutine
     def orderbook_poloniex(self, quote="btc", base="bts"):
