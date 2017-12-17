@@ -144,24 +144,24 @@ class TaskExchanges(object):
 
     def run_tasks_orderbook(self, loop):
         return [
-            loop.create_task(self.fetch_orderbook(
-                "btsbots_cny", "CNY",
-                self.exchanges.orderbook_btsbots, "CNY", "BTS")),
-            loop.create_task(self.fetch_orderbook(
-                "btsbots_usd", "USD",
-                self.exchanges.orderbook_btsbots, "USD", "BTS")),
-            loop.create_task(self.fetch_orderbook(
-                "btsbots_open.btc", "BTC",
-                self.exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
+            #loop.create_task(self.fetch_orderbook(
+             #   "btsbots_cny", "CNY",
+              #  self.exchanges.orderbook_btsbots, "CNY", "BTS")),
+            #loop.create_task(self.fetch_orderbook(
+             #   "btsbots_usd", "USD",
+              #  self.exchanges.orderbook_btsbots, "USD", "BTS")),
+            #loop.create_task(self.fetch_orderbook(
+             #   "btsbots_open.btc", "BTC",
+              #  self.exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
             loop.create_task(self.fetch_orderbook(
                 "aex_btc", "BTC",
                 self.exchanges.orderbook_aex, "btc", "bts")),
             loop.create_task(self.fetch_orderbook(
-                "aex_bitcny", "BITCNY",
+                "aex_bitcny", "CNY",
                 self.exchanges.orderbook_aex, "bitcny", "bts")),
             loop.create_task(self.fetch_orderbook(
-                "aex_bitusd", "BITUSD",
-                self.exchanges.orderbook_aex, "bitusd", "bts"))
+                "aex_bitusd", "USD",
+                self.exchanges.orderbook_aex, "bitusd", "bts")),
             loop.create_task(self.fetch_orderbook(
                 "zb_btc", "BTC",
                 self.exchanges.orderbook_zb, "btc", "bts")),

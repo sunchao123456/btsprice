@@ -4,7 +4,7 @@ import asyncio
 import aiohttp
 import datetime
 import time
-
+import traceback
 
 class Exchanges():
     def __init__(self):
@@ -31,8 +31,9 @@ class Exchanges():
             order_book_ask = sorted(result["asks"])
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
-        except:
-            print("Error fetching book from aex!")
+        except Exception as e:
+            #print 'traceback.print_exc()'
+            traceback.print_exc()
 
     @asyncio.coroutine
     def orderbook_bter(self, quote="cny", base="bts"):
@@ -74,7 +75,7 @@ class Exchanges():
     @asyncio.coroutine
     def orderbook_btsbots(self, quote="CNY", base="BTS"):
         try:
-            url = "https://bitsharesbot.com/api/order?max_results=100&where="
+            url = "https://btsbots.com/api/order?max_results=100&where="
             # url = "http://localhost:5000/api/order?max_results=30&where="
             params = "a_s==%s;a_b==%s" % (base, quote)
             response = yield from asyncio.wait_for(self.session.get(
@@ -84,6 +85,7 @@ class Exchanges():
             for _o in result["_items"]:
                 order_book_ask.append([_o['p'], _o['b_s']])
             params = "a_s==%s;a_b==%s" % (quote, base)
+            print(params)
             response = yield from asyncio.wait_for(self.session.get(
                 url+params), 120)
             result = yield from response.json()
@@ -92,9 +94,9 @@ class Exchanges():
                 order_book_bid.append([1/_o['p'], _o['b_b']])
             return {
                 "bids": order_book_bid, "asks": order_book_ask}
-        except Exception as e::
-            print 'traceback.print_exc():'; traceback.print_exc()
-
+        except Exception as e:
+            #print 'traceback.print_exc()'
+            traceback.print_exc()
     @asyncio.coroutine
     def orderbook_poloniex(self, quote="btc", base="bts"):
         try:
@@ -110,6 +112,7 @@ class Exchanges():
             response = yield from asyncio.wait_for(self.session.get(
                 url, params=params), 120)
             result = yield from response.json()
+            print(result)
             for order_type in self.order_types:
                 for order in result[order_type]:
                     order[0] = float(order[0])
@@ -118,8 +121,8 @@ class Exchanges():
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
         except Exception as e:
-            print("Error fetching book from poloniex!")
-
+            #print 'traceback.print_exc()'
+            traceback.print_exc()
     @asyncio.coroutine
     def orderbook_bittrex(self, quote="btc", base="bts"):
         try:
@@ -570,8 +573,8 @@ if __name__ == "__main__":
             yield from asyncio.sleep(120)
 
     tasks = [
-        # loop.create_task(run_task(exchanges.orderbook_btsbots)),
-        # loop.create_task(run_task(exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
+        #loop.create_task(run_task(exchanges.orderbook_btsbots)),
+        #loop.create_task(run_task(exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
         # loop.create_task(run_task(exchanges.orderbook_aex))
         # loop.create_task(run_task(exchanges.orderbook_lbank, "BTC", "BTS"))
         loop.create_task(run_task(exchanges.orderbook_binance))
