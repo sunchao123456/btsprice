@@ -112,7 +112,6 @@ class Exchanges():
             response = yield from asyncio.wait_for(self.session.get(
                 url, params=params), 120)
             result = yield from response.json()
-            print(result)
             for order_type in self.order_types:
                 for order in result[order_type]:
                     order[0] = float(order[0])
