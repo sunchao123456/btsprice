@@ -32,7 +32,6 @@ class Exchanges():
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
         except Exception as e:
-            #print 'traceback.print_exc()'
             traceback.print_exc()
 
     @asyncio.coroutine
@@ -75,8 +74,7 @@ class Exchanges():
     @asyncio.coroutine
     def orderbook_btsbots(self, quote="CNY", base="BTS"):
         try:
-            url = "https://btsbots.com/api/order?max_results=100&where="
-            # url = "http://localhost:5000/api/order?max_results=30&where="
+            url = "https://bitsharesbot.com/api/order?max_results=100&where="
             params = "a_s==%s;a_b==%s" % (base, quote)
             response = yield from asyncio.wait_for(self.session.get(
                 url+params), 120)
@@ -95,7 +93,6 @@ class Exchanges():
             return {
                 "bids": order_book_bid, "asks": order_book_ask}
         except Exception as e:
-            #print 'traceback.print_exc()'
             traceback.print_exc()
     @asyncio.coroutine
     def orderbook_poloniex(self, quote="btc", base="bts"):
@@ -120,7 +117,6 @@ class Exchanges():
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
         except Exception as e:
-            #print 'traceback.print_exc()'
             traceback.print_exc()
     @asyncio.coroutine
     def orderbook_bittrex(self, quote="btc", base="bts"):
