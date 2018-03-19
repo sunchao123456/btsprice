@@ -8,7 +8,7 @@ import argparse
 import sys
 
 from btsprice import metadata
-from btsprice.feedprice import FeedPrice
+from btsprice.feedprice import FeedPrice 
 import json
 
 
@@ -50,8 +50,7 @@ URL: <{url}>
 
     config_info = {}
     if (args.config):
-        config_info = json.load(args.config)
-
+        config_info = json.load(args.config) 
     feedprice = FeedPrice(config_info)
     feedprice.execute()
 

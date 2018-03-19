@@ -8,11 +8,12 @@ from btsprice.task_exchanges import TaskExchanges
 from btsprice.task_pusher import TaskPusher
 from btsprice.bts_price_after_match import BTSPriceAfterMatch
 from btsprice.feedapi import FeedApi
+from btsprice.magicwallet import Magicwallet
 import time
 import logging
 import logging.handlers
 import os
-from prettytable import PrettyTable
+from prettytable import PrettyTable 
 from math import fabs
 import locale
 locale.setlocale(locale.LC_ALL, 'C')
@@ -21,15 +22,16 @@ locale.setlocale(locale.LC_ALL, 'C')
 class FeedPrice(object):
 
     def __init__(self, config=None):
-        self.exchange_data = {}
+        self.exchange_data = {} 
         self.init_config(config)
         self.bts_price = BTSPriceAfterMatch(self.exchange_data)
         self.bts_price.callback = self.change_weight
         self.bts_price.set_weight(self.config["market_weight"])
         self.init_tasks()
-
+        self.magicwallet=Magicwallet(self.config["magicwalletkey"])
         self.setup_log()
         self.init_mpa_info()
+        self.magicrate = None
         self.sample = self.config["price_limit"]["filter_minute"] / \
             self.config["timer_minute"]
         if self.sample < 1:
@@ -43,7 +45,7 @@ class FeedPrice(object):
         if 'alias' in self.config:
             self.alias = self.config['alias']
         else:
-            self.alias = {}
+            self.alias = {} 
 
     def init_config(self, config):
         if config:
@@ -65,7 +67,7 @@ class FeedPrice(object):
     def init_tasks(self):
         loop = asyncio.get_event_loop()
         # init task_exchanges
-        task_exchanges = TaskExchanges(self.exchange_data)
+        task_exchanges = TaskExchanges(self.exchange_data,self.config["magicwalletkey"])
         task_exchanges.set_period(int(self.config["timer_minute"])*60)
 
         # init task_pusher
@@ -235,11 +237,14 @@ class FeedPrice(object):
         cur_t = time.strftime("%Y/%m/%d %H:%M:%S", time.localtime(time.time()))
         print("[%s] efficent price: %.5f CNY/BTS, depth: %s BTS" % (
             cur_t, bts_price, "{:,.0f}".format(volume)))
+        
         self.display_depth(volume)
         print()
+       
         self.display_price()
 
     def check_publish(self, asset_list, my_feeds, real_price):
+         
         need_publish = {}
         for asset in asset_list:
             if asset not in real_price:
@@ -265,7 +270,27 @@ class FeedPrice(object):
                 continue
         return need_publish
 
+    def price_add_by_magicwallet(self,real_price):
+        ready_publish = {}
+        self.magicrate=self.bts_price.get_magic_rate()
+        mrate=self.config["maigcwalletrate"]
+        print("计算公式为 原有价格*(1+(%s-1)*%s))" %(self.magicrate,mrate))
+        for oneprice in real_price:
+            ready_publish[oneprice]=real_price[oneprice]*(1+(self.magicrate-1)*mrate)
+        print(real_price)
+        if ready_publish:
+            return ready_publish
+        else:
+            return real_price
+        
+       
+    
+
     def task_publish_price(self):
+        
+       
+        self.filter_price=self.price_add_by_magicwallet(self.filter_price)
+        print(self.filter_price)
         if not self.config["witness"]:
             return
         self.feedapi.fetch_feed()
