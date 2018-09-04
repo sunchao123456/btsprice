@@ -274,10 +274,19 @@ class FeedPrice(object):
         ready_publish = {}
         self.magicrate=self.bts_price.get_magic_rate()
         mrate=self.config["maigcwalletrate"]
-        print("计算公式为 原有价格*(1+(%s-1)*%s))" %(self.magicrate,mrate))
+        #print("计算公式为 原有价格*(1+(%s-1)*%s))" %(self.magicrate,mrate))
+        print("计算公式为 原有价格*(1+%s*(%s-1)))" %(mrate,self.magicrate))
         for oneprice in real_price:
-            ready_publish[oneprice]=real_price[oneprice]*(1+(self.magicrate-1)*mrate)
+            priceflag=1+mrate*(self.magicrate-1)
+            if priceflag > 1.14:
+                priceflag=1.14
+            elif priceflag<0.92:
+                priceflag=0.92 
+            
+            ready_publish[oneprice]=real_price[oneprice]*priceflag
+        print("原始价格")
         print(real_price)
+        print("参数%s" %priceflag)
         if ready_publish:
             return ready_publish
         else:
@@ -290,6 +299,7 @@ class FeedPrice(object):
         
        
         self.filter_price=self.price_add_by_magicwallet(self.filter_price)
+        print("加参数后价格")
         print(self.filter_price)
         if not self.config["witness"]:
             return

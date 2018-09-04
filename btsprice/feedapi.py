@@ -201,7 +201,7 @@ class FeedApi(object):
             if asset in self.custom:
                 custom = self.custom[asset]
             feed_info = self.encode_feed(asset, feeds[asset], custom)
-            
+            print("111111"+feed_info)
             self.rpc.add_operation_to_builder_transaction(
                 handle, [19, {
                     "asset_id": self.asset_info[asset]["id"],
