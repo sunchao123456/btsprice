@@ -333,7 +333,7 @@ class FeedPrice(object):
             self.feedapi.asset_list + list(self.alias),
             self.feedapi.my_feeds, self.filter_price)
         print("ready feed")
-        print("feed_need_publish")
+        print(feed_need_publish)
         if feed_need_publish:
             self.logger.info("publish feeds: %s" % feed_need_publish)
             self.feedapi.publish_feed(feed_need_publish)
