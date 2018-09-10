@@ -328,9 +328,12 @@ class FeedPrice(object):
         if not self.config["witness"]:
             return
         self.feedapi.fetch_feed()
+        print("start feed")
         feed_need_publish = self.check_publish(
             self.feedapi.asset_list + list(self.alias),
             self.feedapi.my_feeds, self.filter_price)
+        print("ready feed")
+        print("feed_need_publish")
         if feed_need_publish:
             self.logger.info("publish feeds: %s" % feed_need_publish)
             self.feedapi.publish_feed(feed_need_publish)
