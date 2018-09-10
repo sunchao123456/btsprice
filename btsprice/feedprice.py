@@ -10,6 +10,7 @@ from btsprice.bts_price_after_match import BTSPriceAfterMatch
 from btsprice.feedapi import FeedApi
 from btsprice.magicwallet import Magicwallet
 import time
+from datetime import datetime, date, timedelta
 import logging
 import logging.handlers
 import os
@@ -273,7 +274,18 @@ class FeedPrice(object):
     def price_add_by_magicwallet(self,real_price):
         ready_publish = {}
         self.magicrate=self.bts_price.get_magic_rate()
-        mrate=self.config["maigcwalletrate"]
+        mrate=self.config["maigcwalletrate"] 
+        if self.config["magicwalletlastprice"]=="": 
+            self.config["magicwalletlastprice"]=self.magicrate
+            self.config["magicwalletlasttime"]=datetime.strptime(str(date.today()),'%Y-%m-%d')
+        today = datetime.strptime(str(date.today()),'%Y-%m-%d')
+
+        if self.magicrate==1 and today==self.config["magicwalletlasttime"]:
+            self.magicrate=self.config["magicwalletlastprice"]
+        else:
+            self.config["magicwalletlastprice"]=self.magicrate
+            self.config["magicwalletlasttime"]=datetime.strptime(str(date.today()),'%Y-%m-%d')
+        print("CONFIGTIME%s,NOWTIME%s" %(self.config["magicwalletlasttime"],today))
         #print("计算公式为 原有价格*(1+(%s-1)*%s))" %(self.magicrate,mrate))
         print("计算公式为 原有价格*(1+%s*(%s-1)))" %(mrate,self.magicrate))
         for oneprice in real_price:
@@ -282,7 +294,6 @@ class FeedPrice(object):
                 priceflag=1.14
             elif priceflag<0.92:
                 priceflag=0.92 
-            
             ready_publish[oneprice]=real_price[oneprice]*priceflag
         print("原始价格")
         print(real_price)
