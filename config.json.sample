@@ -1,8 +1,15 @@
 {
     "witness": "",
     "timer_minute": 2,
-    "maigcwalletrate":0.4,
-    "magicwalletkey":""
+    "maigcwalletrate":4,
+    "maigcwalletratelow":2,
+    "maigcwalletratehigh":9.6,
+    "magicwalletkey":"",
+    "magicwalletlastprice":"",
+    "magicwalletlasttime":"",
+    "magicwalletzerorateline":0,
+    "magicwalletlowrateline":0.01,
+    "magicwallethighrateline":0.024,
     "asset_list": [
         "BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD", "CNY",
     "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW", "TUSD", "ARS"],

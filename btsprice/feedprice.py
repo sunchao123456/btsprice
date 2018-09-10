@@ -274,7 +274,7 @@ class FeedPrice(object):
     def price_add_by_magicwallet(self,real_price):
         ready_publish = {}
         self.magicrate=self.bts_price.get_magic_rate()
-        mrate=self.config["maigcwalletrate"] 
+        mrate=self.config["maigcwalletrate"]
         if self.config["magicwalletlastprice"]=="": 
             self.config["magicwalletlastprice"]=self.magicrate
             self.config["magicwalletlasttime"]=datetime.strptime(str(date.today()),'%Y-%m-%d')
@@ -287,9 +287,22 @@ class FeedPrice(object):
             self.config["magicwalletlasttime"]=datetime.strptime(str(date.today()),'%Y-%m-%d')
         print("CONFIGTIME%s,NOWTIME%s" %(self.config["magicwalletlasttime"],today))
         #print("计算公式为 原有价格*(1+(%s-1)*%s))" %(self.magicrate,mrate))
-        print("计算公式为 原有价格*(1+%s*(%s-1)))" %(mrate,self.magicrate))
-        for oneprice in real_price:
+        #for rate
+        if self.magicrate-1<self.config["magicwalletzerorateline"]:
+            mrate=self.config["maigcwalletratelow"]
             priceflag=1+mrate*(self.magicrate-1)
+        elif self.config["magicwalletzerorateline"]<=self.magicrate-1<self.config["magicwalletlowrateline"]:
+            mrate=self.config["maigcwalletratehigh"]
+            priceflag=1+mrate*(self.magicrate-1)
+        elif self.config["magicwalletlowrateline"]<=self.magicrate-1<=self.config["magicwallethighrateline"]:
+            priceflag=1+self.config["maigcwalletratehigh"]/100
+        else:
+            mrate=self.config["maigcwalletrate"]
+            priceflag=1+mrate*(self.magicrate-1)
+        #end for rate
+        
+        print("计算公式为 原有价格*(1+%s*(%s-1)))" %(mrate,self.magicrate))
+        for oneprice in real_price: 
             if priceflag > 1.14:
                 priceflag=1.14
             elif priceflag<0.92:
