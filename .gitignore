@@ -23,6 +23,7 @@ sdist
 deb_dist
 develop-eggs
 .installed.cfg
+.vscode
 
 ## Installer logs
 pip-log.txt
@@ -36,5 +37,7 @@ pip-log.txt
 
 ## paver generated files
 /paver-minilib.zip
-
+btsprice/get-pip.py
+btsprice/npm-debug.log
+subprocess
 config.json
