@@ -1,4 +1,3 @@
-bts
 btspusher
 prettytable
 aiohttp

@@ -4,6 +4,8 @@
 from __future__ import print_function
 
 import asyncio
+import psycopg2
+from bitshares.market import Market
 from btsprice.task_exchanges import TaskExchanges
 from btsprice.task_pusher import TaskPusher
 from btsprice.bts_price_after_match import BTSPriceAfterMatch
@@ -17,6 +19,7 @@ import os
 from prettytable import PrettyTable 
 from math import fabs
 import locale
+from dateutil.parser import parse
 locale.setlocale(locale.LC_ALL, 'C')
 
 
@@ -285,32 +288,98 @@ class FeedPrice(object):
         else:
             self.config["magicwalletlastprice"]=self.magicrate
             self.config["magicwalletlasttime"]=datetime.strptime(str(date.today()),'%Y-%m-%d')
-        print("CONFIGTIME%s,NOWTIME%s" %(self.config["magicwalletlasttime"],today))
+        #print("CONFIGTIME%s,NOWTIME%s" %(self.config["magicwalletlasttime"],today))
         #print("计算公式为 原有价格*(1+(%s-1)*%s))" %(self.magicrate,mrate))
         #for rate
-        if self.magicrate-1<self.config["magicwalletzerorateline"]:
-            mrate=self.config["maigcwalletratelow"]
-            priceflag=1+mrate*(self.magicrate-1)
-        elif self.config["magicwalletzerorateline"]<=self.magicrate-1<self.config["magicwalletlowrateline"]:
-            mrate=self.config["maigcwalletratehigh"]
-            priceflag=1+mrate*(self.magicrate-1)
-        elif self.config["magicwalletlowrateline"]<=self.magicrate-1<=self.config["magicwallethighrateline"]:
-            priceflag=1+self.config["maigcwalletratehigh"]/100
-        else:
-            mrate=self.config["maigcwalletrate"]
-            priceflag=1+mrate*(self.magicrate-1)
+        # if self.magicrate-1<self.config["magicwalletzerorateline"]:
+        #     mrate=self.config["maigcwalletratelow"]
+        #     priceflag=1+mrate*(self.magicrate-1)
+        # elif self.config["magicwalletzerorateline"]<=self.magicrate-1<self.config["magicwalletlowrateline"]:
+        #     mrate=self.config["maigcwalletratehigh"]
+        #     priceflag=1+mrate*(self.magicrate-1)
+        # elif self.config["magicwalletlowrateline"]<=self.magicrate-1<=self.config["magicwallethighrateline"]:
+        #     priceflag=1+self.config["maigcwalletratehigh"]/100
+        # else:
+        #     mrate=self.config["maigcwalletrate"]
+        #     priceflag=1+mrate*(self.magicrate-1)
         #end for rate
         
-        print("计算公式为 原有价格*(1+%s*(%s-1)))" %(mrate,self.magicrate))
-        for oneprice in real_price: 
-            if priceflag > 1.14:
-                priceflag=1.14
-            elif priceflag<0.92:
-                priceflag=0.92 
-            ready_publish[oneprice]=real_price[oneprice]*priceflag
+        
+        
+        ready_publish=real_price
+
+        
+        
         print("原始价格")
         print(real_price)
-        print("参数%s" %priceflag)
+        print("计算C")
+        market = Market("BTS:CNY")
+        c=market.ticker()['baseSettlement_price']/market.ticker()['latest']
+        print(c)
+        print("获取数据库数据")
+        conn = psycopg2.connect(database=self.config["dbname"], user=self.config["dbuser"], password=self.config["dbpwd"], host=self.config["dbhost"], port=self.config["dbport"])
+        CNY=ready_publish['CNY']
+        mratenew=self.magicrate
+        cur = conn.cursor()
+        cur.execute("SELECT id, cvalue,mrate ,createdate from record order by createdate desc limit 2")
+        rows = cur.fetchall()
+        upline=0
+        lowline=0
+        cur2=conn.cursor()
+        cur2.execute("SELECT id, name, value from params")
+        prows = cur2.fetchall()
+        for row in prows:
+            if row[1]=='upline':
+                upline=row[2]
+            elif row[1]=='lowline':
+                lowline=row[2]
+    
+        cdatetime=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
+        if rows==[]:
+            c=c*mratenew
+        elif rows.__len__()==1:
+            c=float(rows[0][1])
+            c=c*mratenew
+            cdatetime=rows[0][3].strftime('%Y-%m-%d %H:%M:%S') 
+        else :
+            c=float(rows[0][1])
+            if float(rows[0][2])<mratenew:
+                mratenew=mratenew*(1+float(upline))
+            else:
+                mratenew=mratenew*(1+float(lowline))
+            cdatetime=rows[0][3].strftime('%Y-%m-%d %H:%M:%S') 
+            c=c*mratenew
+
+        #start check 
+        # if priceflag > self.config["flaghigh"]:
+        #     priceflag=self.config["flaghigh"]
+        # elif priceflag<self.config["flaglow"]:
+        #     priceflag=self.config["flaglow"]
+        CNY=CNY*c
+
+        sqlinsert="INSERT INTO record (btsprice, feedprice, cvalue,mrate,myfeedprice) \
+        VALUES ('"+str(market.ticker()['latest'])+"','"+str(market.ticker()['baseSettlement_price'])+"','"+str(market.ticker()['baseSettlement_price']/market.ticker()['latest'])+"','"+str(mratenew)+"','"+str(CNY)+"')"
+        print('timedis')
+        print((parse(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()))- parse(cdatetime)).total_seconds()/(60*60))
+        if self.config["changehour"]<((parse(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()))- parse(cdatetime)).total_seconds()/(60*60)):
+            cur.execute(sqlinsert)
+            conn.commit()
+        conn.close()
+        print('OK')
+
+        ready_publish['CNY']=CNY 
+        for oneprice in ready_publish:
+            if oneprice!='CNY':
+                ready_publish[oneprice]=ready_publish[oneprice]*(1+(c-1)*self.config["otherassetrate"])
+        
+        # for oneprice in real_price:
+        #     if priceflag > 1.14:
+        #         priceflag=1.14
+        #     elif priceflag<0.92:
+        #         priceflag=0.92 
+        #     ready_publish[oneprice]=real_price[oneprice]*priceflag
+        
+        print("参数%s" %c)
         if ready_publish:
             return ready_publish
         else:
