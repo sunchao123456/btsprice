@@ -364,6 +364,9 @@ class FeedPrice(object):
         if self.config["changehour"]<((parse(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()))- parse(cdatetime)).total_seconds()/(60*60)):
             cur.execute(sqlinsert)
             conn.commit()
+        elif rows==[]:
+            cur.execute(sqlinsert)
+            conn.commit()
         conn.close()
         print('OK')
 
