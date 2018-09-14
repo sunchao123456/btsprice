@@ -355,7 +355,13 @@ class FeedPrice(object):
         #     priceflag=self.config["flaghigh"]
         # elif priceflag<self.config["flaglow"]:
         #     priceflag=self.config["flaglow"]
+        if c > self.config["flaghigh"]:
+                c=self.config["flaghigh"]
+        elif c<self.config["flaglow"]:
+                c=self.config["flaglow"] 
         CNY=CNY*c
+            
+            
 
         sqlinsert="INSERT INTO record (btsprice, feedprice, cvalue,mrate,myfeedprice) \
         VALUES ('"+str(market.ticker()['latest'])+"','"+str(market.ticker()['baseSettlement_price'])+"','"+str(market.ticker()['baseSettlement_price']/market.ticker()['latest'])+"','"+str(mratenew)+"','"+str(CNY)+"')"
@@ -367,6 +373,7 @@ class FeedPrice(object):
         elif rows==[]:
             cur.execute(sqlinsert)
             conn.commit()
+
         conn.close()
         print('OK')
 
